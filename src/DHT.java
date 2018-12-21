@@ -30,29 +30,8 @@ public class DHT<K,V> implements Map<K,V> {
         return (h1+h2*count) % tableSize;
     }
 
-      private Pair<K,Integer> checkKey (K key) {
-        int hashFunction1 = hash1(key);
-        int hashFunction2 = hash2(key);
-        int generalHashFunction = -1;
-        try {
-            for (int i = 0; i < tableSize; i++) {
-                generalHashFunction = generalHash(hashFunction1, hashFunction2, i);
-                if (!doublehash[generalHashFunction].getIsEmpty() && doublehash[generalHashFunction].getKey().equals(key)) {
-                    return new Pair<>(doublehash[generalHashFunction].getKey(), generalHashFunction);
-                }
-            }
-            return null;
-        } catch (NullPointerException e) {
-            return new Pair<>(null,generalHashFunction);
-        }
-    }
-
-    @Override
-    public V get(Object key) {
-
-        Pair<K,Integer> tp = checkKey((K) key);
-        return (tp == null || tp.getKey() == null) ? null : doublehash[tp.getValue()].getValue();
-    }
+    private Set<K> keySet;
+    private Set<V> values;
 
     private void extendTable() {
         if (numberOfElements == tableSize) {
@@ -73,11 +52,74 @@ public class DHT<K,V> implements Map<K,V> {
         }
     }
 
+    private Set<Map.Entry<K, V>> entrySet;
+
+    private Pair<K, Integer> checkKey(K key, boolean acceptEmpty) {
+        int hashFunction1 = hash1(key);
+        int hashFunction2 = hash2(key);
+        int generalHashFunction;
+
+        for (int i = 0; i < tableSize; i++) {
+            generalHashFunction = generalHash(hashFunction1, hashFunction2, i);
+            if (Objects.isNull(doublehash[generalHashFunction])) {
+                return new Pair<>(null, generalHashFunction);
+            }
+            boolean check = (!acceptEmpty)
+                    ? !doublehash[generalHashFunction].getIsEmpty() && doublehash[generalHashFunction].getKey().equals(key)
+                    : doublehash[generalHashFunction].getKey().equals(key);
+            if (check) {
+                return new Pair<>(doublehash[generalHashFunction].getKey(), generalHashFunction);
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public int size() {
+        return numberOfElements;
+    }
+
+    @Override
+    public boolean isEmpty() {
+        return size() == 0;
+    }
+
+    @Override
+    public boolean containsKey(Object key) {
+        return get(key) != null;
+    }
+
+    @Override
+    public V get(Object key) {
+
+        Pair<K, Integer> tp = checkKey((K) key, false);
+        return (tp == null || tp.getKey() == null) ? null : doublehash[tp.getValue()].getValue();
+    }
+
+    @Override
+    public void putAll(Map<? extends K, ? extends V> m) {
+        for (Map.Entry<? extends K, ? extends V> entry : m.entrySet()) {
+            put(entry.getKey(), entry.getValue());
+        }
+
+    }
+
+    @Override
+    public void clear() {
+        if (size() == 0) {
+            return;
+        }
+        for (int i = 0; i < tableSize; i++) {
+            doublehash[i] = null;
+        }
+        numberOfElements = 0;
+    }
+
     @Override
     public V put(K key, V value) {
         extendTable();
 
-        Pair<K,Integer> tp = checkKey(key);
+        Pair<K, Integer> tp = checkKey(key, true);
         if (tp.getKey() == null) {
             doublehash[tp.getValue()]= new Cell(key,value);
             numberOfElements++;
@@ -92,32 +134,12 @@ public class DHT<K,V> implements Map<K,V> {
     @Override
     public V remove(Object key) {
 
-        V cellValue = get(key);
-        if (cellValue == null)
-                return null;
-
-        Pair<K,Integer> tp = checkKey((K) key);
+        Pair<K, Integer> tp = checkKey((K) key, false);
         if (tp != null && tp.getKey() != null) {
             doublehash[tp.getValue()].changeEmpty();
             numberOfElements--;
-            return cellValue;
+            return doublehash[tp.getValue()].getValue();
         } else return null;
-    }
-
-    @Override
-    public int size() {
-        return numberOfElements;
-    }
-
-    @Override
-    public boolean isEmpty() {
-        return size()==0;
-    }
-
-    @Override
-    public boolean containsKey(Object key) {
-        //return findKey((K) key) != null;
-        return get(key) != null;
     }
 
     @Override
@@ -126,7 +148,9 @@ public class DHT<K,V> implements Map<K,V> {
             return false;
         }
         for (int i=0;i<tableSize;i++){
-            if(doublehash[i] != null && doublehash[i].getValue().equals(value)){
+            if (Objects.nonNull(doublehash[i])
+                    && !doublehash[i].getIsEmpty()
+                    && doublehash[i].getValue().equals(value)) {
                 return true;
             }
         }
@@ -134,47 +158,44 @@ public class DHT<K,V> implements Map<K,V> {
     }
 
     @Override
-    public void putAll(Map<? extends K, ? extends V> m) {
-        for(Map.Entry<? extends K, ? extends V> entry : m.entrySet()){
-            put(entry.getKey(),entry.getValue());
-        }
-
-    }
-
-    @Override
-    public void clear() {
-        if(size() == 0){
-            return;
-        }
-        for(int i = 0;i<tableSize;i++){
-            doublehash[i]=null;
-        }
-        numberOfElements = 0;
-    }
-
-    @Override
     public Set<K> keySet() {
-        return null;
+        Set<K> ks = keySet;
+        if (ks == null) {
+            ks = new KeySet();
+            keySet = ks;
+        }
+        return ks;
     }
 
     @Override
     public Collection<V> values() {
-        return null;
+        Set<V> vs = values;
+        if (values == null) {
+            vs = new ValueSet();
+            values = vs;
+        }
+        return vs;
     }
+
+
+    /// ITERATORS
 
     @Override
     public Set<Entry<K, V>> entrySet() {
 
-        return null;
+        Set<Map.Entry<K, V>> es = entrySet;
+        if (es == null) {
+            es = new EntrySet();
+            entrySet = es;
+        }
+        return es;
     }
 
     @Override
     public boolean equals(Object o) {
-        if (!(o instanceof DHT))
-            return false;
         DHT dht =(DHT)o;
-        if (this != dht)
-            return false;
+        if (this == dht)
+            return true;
         Set entrySetTwo = dht.entrySet();
         return (this.entrySet().equals(entrySetTwo));
     }
@@ -183,73 +204,176 @@ public class DHT<K,V> implements Map<K,V> {
     public int hashCode() {
         int result = 0;
         for (Cell<K,V> cell : doublehash) {
-            result = result + cell.hashCode();
+            result = result + ((cell == null || cell.getIsEmpty()) ? 0 : cell.hashCode());
         }
         return result;
     }
 
-   /* public class IteratorValues implements Iterator<V>{
-        int index = 0;
-        V currentV;
-        Cell<K,V> hashTable[] = doublehash;
+    abstract class Iterator {
+        int index;
+        Cell<K, V> currentElement;
+        Cell<K, V> hashTable[];
 
-        @Override
+        private Iterator() {
+            hashTable = doublehash;
+            index = 0;
+        }
+
         public boolean hasNext() {
             int i = index;
-            currentV = null;
-            while (i<=hashTable.length-1 && currentV==null){
-                if(hashTable[i] != null){
-                    currentV = hashTable[i].getValue();
-                }
-                else {
+            currentElement = null;
+            while (i <= hashTable.length - 1 && currentElement == null) {
+                if (hashTable[i] != null) {
+                    currentElement = hashTable[i];
+                } else
                     i++;
-                }
             }
-            if (currentV!=null) return true;
-            else return false;
+            if (i > index)
+                index = i;
+            return currentElement != null;
         }
 
-        @Override
-        public V next() {
-            if(!hasNext()){
-                throw new NoSuchElementException("");
-            }
-            index++;
-            return currentV;
+        public void remove() {
+            if (index > hashTable.length)
+                throw new NoSuchElementException("Error");
+            hashTable[index - 1] = null;
+            numberOfElements--;
         }
-
     }
 
-    public class IteratorKeys implements Iterator<K>{
-        int index = 0;
-        K currentK;
-        Cell<K,V> hashTable[] = doublehash;
-
-        @Override
-        public boolean hasNext() {
-            int i = index;
-            currentK = null;
-            while (i<=hashTable.length-1 && currentK==null){
-                if(hashTable[i] != null){
-                    currentK = hashTable[i].getKey();
-                }
-                else {
-                    i++;
-                }
-            }
-            if (currentK!=null) return true;
-            else return false;
-        }
-
-        @Override
-        public K next() {
-            if(!hasNext()){
-                throw new NoSuchElementException("");
-            }
+    class KeyIterator extends Iterator implements java.util.Iterator<K> {
+        public final K next() {
             index++;
-            return currentK;
+            return currentElement.getKey();
+        }
+    }
+
+    class ValueIterator extends Iterator implements java.util.Iterator<V> {
+        public final V next() {
+            index++;
+            return currentElement.getValue();
+        }
+    }
+
+    class EntryIterator extends Iterator implements java.util.Iterator<Map.Entry<K, V>> {
+        public final Map.Entry<K, V> next() {
+            index++;
+            return currentElement;
+        }
+    }
+
+    final class KeySet extends AbstractSet<K> {
+
+        public final java.util.Iterator<K> iterator() {
+            return new KeyIterator();
         }
 
-    }*/
+        @Override
+        public boolean contains(Object obj) {
+            return DHT.this.containsKey(obj);
+        }
 
+        @Override
+        public void clear() {
+            DHT.this.clear();
+        }
+
+        @Override
+        public int size() {
+            return DHT.this.size();
+        }
+
+        @Override
+        public boolean remove(Object key) {
+            java.util.Iterator<K> iteratorForKeys = iterator();
+            K keys = (K) key;
+            do {
+                K i = iteratorForKeys.next();
+                if (i == keys) {
+                    iteratorForKeys.remove();
+                    return true;
+                }
+
+            }
+            while (iteratorForKeys.hasNext());
+            return false;
+        }
+    }
+
+    final class ValueSet extends AbstractSet<V> {
+
+        public final java.util.Iterator<V> iterator() {
+            return new ValueIterator();
+        }
+
+        @Override
+        public boolean contains(Object obj) {
+            return DHT.this.containsValue(obj);
+        }
+
+        @Override
+        public void clear() {
+            DHT.this.clear();
+        }
+
+        @Override
+        public int size() {
+            return DHT.this.size();
+        }
+
+        @Override
+        public boolean remove(Object value) {
+            java.util.Iterator<V> iteratorForValues = iterator();
+            V values = (V) value;
+            do {
+                V i = iteratorForValues.next();
+                if (i == values) {
+                    iteratorForValues.remove();
+                    return true;
+                }
+
+            }
+            while (iteratorForValues.hasNext());
+            return false;
+        }
+    }
+
+    final class EntrySet extends AbstractSet<Map.Entry<K, V>> {
+
+        public final java.util.Iterator<Map.Entry<K, V>> iterator() {
+            return new EntryIterator();
+        }
+
+        @Override
+        public boolean contains(Object obj) {
+            Cell<K, V> cell = (Cell<K, V>) obj;
+            return DHT.this.containsKey(cell.getKey()) && DHT.this.containsValue(cell.getValue());
+        }
+
+        @Override
+        public void clear() {
+            DHT.this.clear();
+        }
+
+        @Override
+        public int size() {
+            return DHT.this.size();
+        }
+
+        @Override
+        public boolean remove(Object entry) {
+            java.util.Iterator<Map.Entry<K, V>> iteratorForEntries = iterator();
+            Map.Entry<K, V> entries = (Map.Entry<K, V>) entry;
+            do {
+                Map.Entry<K, V> i = iteratorForEntries.next();
+                if (i == entries) {
+                    iteratorForEntries.remove();
+                    return true;
+                }
+
+            }
+            while (iteratorForEntries.hasNext());
+            return false;
+        }
+    }
 }

@@ -36,14 +36,15 @@ public class Cell<K,V> implements Map.Entry<K,V> {
 
     @Override
     public boolean equals(Object o) {
+        if (!(o instanceof Map.Entry)) return false;
         Cell element = (Cell) o;
-        return (this.key.equals(element.key) && this.value.equals(element.value));
+        return (this.key.equals(element.key) ^ this.value.equals(element.value));
     }
 
     @Override
     public int hashCode() {
         int res = key.hashCode();
-        res = res + value.hashCode();
+        res = res ^ value.hashCode();
         return res;
     }
     @Override

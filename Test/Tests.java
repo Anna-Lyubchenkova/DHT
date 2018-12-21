@@ -1,8 +1,9 @@
-import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.HashSet;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 
@@ -36,7 +37,19 @@ public class Tests {
         assertEquals(null, value5_n);
 
 
-         DHT<Integer, String> table2 = new  DHT<>();
+        Set<Integer> ks = table1.keySet();
+        assertEquals(5, ks.size());
+        Iterator<Integer> iter = ks.iterator();
+
+        Collection<Integer> vs = table1.values();
+        assertEquals(5, vs.size());
+        Iterator<Integer> iter2 = vs.iterator();
+
+        Collection<Map.Entry<Integer, Integer>> es = table1.entrySet();
+        assertEquals(5, es.size());
+        Iterator<Map.Entry<Integer, Integer>> iter3 = es.iterator();
+
+        DHT<Integer, String> table2 = new DHT<>();
 
         Integer keys1 = 2;
         String word1  = "34";
@@ -163,6 +176,10 @@ public class Tests {
         table2.put(key4, value4);
         table2.put(key5, value5);
 
+        Set<Map.Entry<Integer, Integer>> es1 = table1.entrySet();
+        Set<Map.Entry<Integer, Integer>> es2 = table2.entrySet();
+
+        assertEquals(true, es1.equals(es2));
         assertEquals(true, table1.equals(table2));
 
 
@@ -181,5 +198,38 @@ public class Tests {
         assertEquals(false, table1.equals(table3));
     }
 
+    @Test
+    public void testhashCode() {
+        Integer key1 = 2;
+        Integer value1 = 34;
+        Integer key2 = 0;
+        Integer value2 = 123;
+        Integer key3 = 12;
+        Integer value3 = 1000;
 
+        DHT<Integer, Integer> table1 = new DHT<>();
+        table1.put(key1, value1);
+        table1.put(key2, value2);
+        table1.put(key3, value3);
+
+        DHT<Integer, Integer> table2 = new DHT();
+
+        table2.put(key1, value1);
+        table2.put(key2, value2);
+        table2.put(key3, value3);
+
+        DHT<Integer, Integer> table3 = new DHT();
+
+        table3.put(key1, value3);
+        table3.put(key2, value2);
+        table3.put(key3, value1);
+
+
+        int h1 = table1.hashCode();
+        int h2 = table2.hashCode();
+        int h3 = table3.hashCode();
+
+        assertEquals(true, h1 == h2);
+        assertEquals(false, h1 == h3);
+    }
 }
