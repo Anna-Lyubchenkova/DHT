@@ -31,7 +31,7 @@ public class DHT<K,V> implements Map<K,V> {
     }
 
     private Set<K> keySet;
-    private Set<V> values;
+    private Collection<V> values;
 
     private void extendTable() {
         if (numberOfElements == tableSize) {
@@ -121,7 +121,7 @@ public class DHT<K,V> implements Map<K,V> {
 
         Pair<K, Integer> tp = checkKey(key, true);
         if (tp.getKey() == null) {
-            doublehash[tp.getValue()]= new Cell(key,value);
+            doublehash[tp.getValue()] = new Cell<>(key, value);
             numberOfElements++;
             return null;
         } else {
@@ -169,9 +169,9 @@ public class DHT<K,V> implements Map<K,V> {
 
     @Override
     public Collection<V> values() {
-        Set<V> vs = values;
+        Collection<V> vs = values;
         if (values == null) {
-            vs = new ValueSet();
+            vs = new Values();
             values = vs;
         }
         return vs;
@@ -193,9 +193,12 @@ public class DHT<K,V> implements Map<K,V> {
 
     @Override
     public boolean equals(Object o) {
-        DHT dht =(DHT)o;
-        if (this == dht)
+        if (this == o)
             return true;
+        if (o == null)
+            return false;
+
+        Map<K, V> dht = (Map<K, V>) o;
         Set entrySetTwo = dht.entrySet();
         return (this.entrySet().equals(entrySetTwo));
     }
@@ -236,29 +239,37 @@ public class DHT<K,V> implements Map<K,V> {
         public void remove() {
             if (index > hashTable.length)
                 throw new NoSuchElementException("Error");
-            hashTable[index - 1] = null;
-            numberOfElements--;
+            if (!hashTable[index - 1].getIsEmpty()) {
+                hashTable[index - 1].changeEmpty();
+                numberOfElements--;
+            }
         }
     }
 
     class KeyIterator extends Iterator implements java.util.Iterator<K> {
         public final K next() {
-            index++;
-            return currentElement.getKey();
+            if (hasNext()) {
+                index++;
+                return currentElement.getKey();
+            } else throw new NoSuchElementException("No next key");
         }
     }
 
     class ValueIterator extends Iterator implements java.util.Iterator<V> {
         public final V next() {
-            index++;
-            return currentElement.getValue();
+            if (hasNext()) {
+                index++;
+                return currentElement.getValue();
+            } else throw new NoSuchElementException("No next value");
         }
     }
 
     class EntryIterator extends Iterator implements java.util.Iterator<Map.Entry<K, V>> {
         public final Map.Entry<K, V> next() {
-            index++;
-            return currentElement;
+            if (hasNext()) {
+                index++;
+                return currentElement;
+            } else throw new NoSuchElementException("No next entry");
         }
     }
 
@@ -285,22 +296,11 @@ public class DHT<K,V> implements Map<K,V> {
 
         @Override
         public boolean remove(Object key) {
-            java.util.Iterator<K> iteratorForKeys = iterator();
-            K keys = (K) key;
-            do {
-                K i = iteratorForKeys.next();
-                if (i == keys) {
-                    iteratorForKeys.remove();
-                    return true;
-                }
-
-            }
-            while (iteratorForKeys.hasNext());
-            return false;
+            return DHT.this.remove(key) != null;
         }
     }
 
-    final class ValueSet extends AbstractSet<V> {
+    final class Values extends AbstractCollection<V> {
 
         public final java.util.Iterator<V> iterator() {
             return new ValueIterator();
@@ -327,7 +327,7 @@ public class DHT<K,V> implements Map<K,V> {
             V values = (V) value;
             do {
                 V i = iteratorForValues.next();
-                if (i == values) {
+                if (i.equals(values)) {
                     iteratorForValues.remove();
                     return true;
                 }
@@ -347,7 +347,8 @@ public class DHT<K,V> implements Map<K,V> {
         @Override
         public boolean contains(Object obj) {
             Cell<K, V> cell = (Cell<K, V>) obj;
-            return DHT.this.containsKey(cell.getKey()) && DHT.this.containsValue(cell.getValue());
+            //return DHT.this.containsKey(cell.getKey()) && DHT.this.containsValue(cell.getValue());
+            return DHT.this.get(cell.getKey()).equals(cell.getValue());
         }
 
         @Override
@@ -366,7 +367,7 @@ public class DHT<K,V> implements Map<K,V> {
             Map.Entry<K, V> entries = (Map.Entry<K, V>) entry;
             do {
                 Map.Entry<K, V> i = iteratorForEntries.next();
-                if (i == entries) {
+                if (i.equals(entries)) {
                     iteratorForEntries.remove();
                     return true;
                 }
