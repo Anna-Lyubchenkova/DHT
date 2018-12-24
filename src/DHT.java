@@ -36,7 +36,7 @@ public class DHT<K,V> implements Map<K,V> {
     private void extendTable() {
         if (numberOfElements == tableSize) {
             tableSize *= 2;
-            Cell<K, V> doubleHash2[] = new Cell[tableSize];
+            Cell doubleHash2[] = new Cell[tableSize];
             for (int i = 0; i < doublehash.length; i++) {
                 int hashFun1 = hash1(doublehash[i].getKey());
                 int hashFun2 = hash2(doublehash[i].getKey());
@@ -351,7 +351,6 @@ public class DHT<K,V> implements Map<K,V> {
         @Override
         public boolean contains(Object obj) {
             Cell<K, V> cell = (Cell<K, V>) obj;
-            //return DHT.this.containsKey(cell.getKey()) && DHT.this.containsValue(cell.getValue());
             return DHT.this.get(cell.getKey()).equals(cell.getValue());
         }
 
