@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.text.Text?>
+
+<GridPane xmlns:fx="http://javafx.com/fxml/1" alignment="center" hgap="10" vgap="10"
+          xmlns="http://javafx.com/javafx/10.0.1" fx:controller="GUIController">
+    <children>
+        <GridPane alignment="center" hgap="10" vgap="10">
+            <children>
+                <AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity"
+                            prefHeight="400.0" prefWidth="740.0" style="-fx-background-color: pink;">
+                    <children>
+                        <Button fx:id="putB" layoutX="190.0" layoutY="20.0" mnemonicParsing="false" text="PUT"/>
+                        <Button fx:id="removeB" layoutX="400.0" layoutY="5.0" mnemonicParsing="false" text="REMOVE"/>
+                        <Button fx:id="getB" layoutX="400.0" layoutY="35.0" mnemonicParsing="false" text="GET"/>
+                        <Button fx:id="CLEAR" layoutX="480.0" layoutY="350.0" mnemonicParsing="false" text="CLEAR"/>
+
+                        <Text fx:id="Key" layoutX="8.0" layoutY="20.0" text="key"/>
+                        <Text fx:id="Value" layoutX="3.0" layoutY="50.0" text="value"/>
+                        <TextField fx:id="FIELDPUTKEY" layoutX="35.0" layoutY="5.0"/>
+                        <TextField fx:id="FIELDPUTVALUE" layoutX="35.0" layoutY="35.0"/>
+                        <TextField fx:id="FIELDREMOVE" layoutX="240.0" layoutY="5.0" prefHeight="25.0"
+                                   prefWidth="149.0"/>
+                        <TextField fx:id="FIELDGET" layoutX="240.0" layoutY="35.0"/>
+
+                        <TextArea fx:id="VALUES" layoutX="3.0" layoutY="88.0" prefHeight="290.0" prefWidth="455.0"/>
+                        <TextArea fx:id="RESULT" layoutX="500.0" layoutY="50.0" prefHeight="200.0" prefWidth="200.0"/>
+                        <Text layoutX="540.0" layoutY="30.0" strokeType="OUTSIDE" strokeWidth="0.0"
+                              text="OPERATION RESULT" wrappingWidth="169.13671875"/>
+                        <Text layoutX="11.0" layoutY="104.0" strokeType="OUTSIDE" strokeWidth="0.0" text="i"
+                              wrappingWidth="30.13671875"/>
+                        <Text layoutX="60.0" layoutY="104.0" strokeType="OUTSIDE" strokeWidth="0.0" text="key"
+                              wrappingWidth="87.13671565055847"/>
+                        <Text layoutX="160.0" layoutY="104.0" strokeType="OUTSIDE" strokeWidth="0.0" text="value"
+                              wrappingWidth="87.13671565055847"/>
+                        <Text layoutX="270.0" layoutY="104.0" strokeType="OUTSIDE" strokeWidth="0.0" text="empty"
+                              wrappingWidth="87.13671565055847"/>
+                        <Text layoutX="390.0" layoutY="104.0" strokeType="OUTSIDE" strokeWidth="0.0" text="isNull"
+                              wrappingWidth="87.13671565055847"/>
+                    </children>
+                </AnchorPane>
+            </children>
+            <columnConstraints>
+                <ColumnConstraints/>
+            </columnConstraints>
+            <rowConstraints>
+                <RowConstraints/>
+            </rowConstraints>
+        </GridPane>
+    </children>
+    <columnConstraints>
+        <ColumnConstraints/>
+    </columnConstraints>
+    <rowConstraints>
+        <RowConstraints/>
+    </rowConstraints>
+</GridPane>

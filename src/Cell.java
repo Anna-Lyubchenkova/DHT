@@ -27,6 +27,11 @@ public class Cell<K,V> implements Map.Entry<K,V> {
         this.value = value;
         return this.value;
     }
+
+    public K setKey(K key) {
+        this.key = key;
+        return this.key;
+    }
     public boolean getIsEmpty(){
         return isEmpty;
     }

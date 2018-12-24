@@ -3,6 +3,10 @@ import javafx.util.Pair;
 import java.util.*;
 
 public class DHT<K,V> implements Map<K,V> {
+    public Cell<K, V>[] getDoublehash() {
+        return doublehash;
+    }
+
     private Cell<K,V> doublehash[];
     private int numberOfElements = 0;
     private int tableSize = 4;
@@ -66,7 +70,7 @@ public class DHT<K,V> implements Map<K,V> {
             }
             boolean check = (!acceptEmpty)
                     ? !doublehash[generalHashFunction].getIsEmpty() && doublehash[generalHashFunction].getKey().equals(key)
-                    : doublehash[generalHashFunction].getKey().equals(key);
+                    : doublehash[generalHashFunction].getKey().equals(key) || doublehash[generalHashFunction].getIsEmpty();
             if (check) {
                 return new Pair<>(doublehash[generalHashFunction].getKey(), generalHashFunction);
             }
@@ -77,6 +81,10 @@ public class DHT<K,V> implements Map<K,V> {
     @Override
     public int size() {
         return numberOfElements;
+    }
+
+    public int getCapacity() {
+        return tableSize;
     }
 
     @Override
@@ -127,6 +135,11 @@ public class DHT<K,V> implements Map<K,V> {
         } else {
             V v = doublehash[tp.getValue()].getValue();
             doublehash[tp.getValue()].setValue(value);
+            if (doublehash[tp.getValue()].getIsEmpty()) {
+                doublehash[tp.getValue()].changeEmpty();
+                numberOfElements++;
+                doublehash[tp.getValue()].setKey(key);
+            }
             return v;
         }
     }
