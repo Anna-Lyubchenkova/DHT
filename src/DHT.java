@@ -195,8 +195,7 @@ public class DHT<K,V> implements Map<K,V> {
     public boolean equals(Object o) {
         if (this == o)
             return true;
-        if (o == null)
-            return false;
+        if (o == null || !(o instanceof Map)) return false;
 
         Map<K, V> dht = (Map<K, V>) o;
         Set entrySetTwo = dht.entrySet();
@@ -214,6 +213,7 @@ public class DHT<K,V> implements Map<K,V> {
 
     abstract class Iterator {
         int index;
+        boolean mayRemove = false;
         Cell<K, V> currentElement;
         Cell<K, V> hashTable[];
 
@@ -226,7 +226,7 @@ public class DHT<K,V> implements Map<K,V> {
             int i = index;
             currentElement = null;
             while (i <= hashTable.length - 1 && currentElement == null) {
-                if (hashTable[i] != null) {
+                if (hashTable[i] != null && !hashTable[i].getIsEmpty()) {
                     currentElement = hashTable[i];
                 } else
                     i++;
@@ -237,11 +237,12 @@ public class DHT<K,V> implements Map<K,V> {
         }
 
         public void remove() {
-            if (index > hashTable.length)
-                throw new NoSuchElementException("Error");
-            if (!hashTable[index - 1].getIsEmpty()) {
-                hashTable[index - 1].changeEmpty();
+            if (!mayRemove)
+                throw new IllegalStateException("Element can't be removed until calling next()");
+            if (!hashTable[index].getIsEmpty()) {
+                hashTable[index].changeEmpty();
                 numberOfElements--;
+                mayRemove = false;
             }
         }
     }
@@ -250,6 +251,7 @@ public class DHT<K,V> implements Map<K,V> {
         public final K next() {
             if (hasNext()) {
                 index++;
+                mayRemove = true;
                 return currentElement.getKey();
             } else throw new NoSuchElementException("No next key");
         }
@@ -259,6 +261,7 @@ public class DHT<K,V> implements Map<K,V> {
         public final V next() {
             if (hasNext()) {
                 index++;
+                mayRemove = true;
                 return currentElement.getValue();
             } else throw new NoSuchElementException("No next value");
         }
@@ -268,6 +271,7 @@ public class DHT<K,V> implements Map<K,V> {
         public final Map.Entry<K, V> next() {
             if (hasNext()) {
                 index++;
+                mayRemove = true;
                 return currentElement;
             } else throw new NoSuchElementException("No next entry");
         }
@@ -363,18 +367,7 @@ public class DHT<K,V> implements Map<K,V> {
 
         @Override
         public boolean remove(Object entry) {
-            java.util.Iterator<Map.Entry<K, V>> iteratorForEntries = iterator();
-            Map.Entry<K, V> entries = (Map.Entry<K, V>) entry;
-            do {
-                Map.Entry<K, V> i = iteratorForEntries.next();
-                if (i.equals(entries)) {
-                    iteratorForEntries.remove();
-                    return true;
-                }
-
-            }
-            while (iteratorForEntries.hasNext());
-            return false;
+            return DHT.this.remove(((Map.Entry<K, V>) entry).getKey()) != null;
         }
     }
 }

@@ -36,7 +36,7 @@ public class Cell<K,V> implements Map.Entry<K,V> {
 
     @Override
     public boolean equals(Object o) {
-        if (!(o instanceof Map.Entry)) return false;
+        if (!(o instanceof Cell)) return false;
         Cell element = (Cell) o;
         return (this.key.equals(element.key) && this.value.equals(element.value));
     }

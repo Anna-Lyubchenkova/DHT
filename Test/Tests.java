@@ -1,9 +1,6 @@
 import org.junit.Test;
 
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static org.junit.Assert.assertEquals;
 
@@ -196,6 +193,13 @@ public class Tests {
         table3.put(keys3, word3);
 
         assertEquals(false, table1.equals(table3));
+
+        Map.Entry<Integer, Integer> i = es1.iterator().next();
+        Cell<Integer, Integer> c = new Cell<>(2, 34);
+        assertEquals(false, c.equals(i));
+        assertEquals(false, c.equals(new Integer(5)));
+
+        assertEquals(false, table1.equals(new Integer(10)));
     }
 
     @Test
@@ -232,4 +236,5 @@ public class Tests {
         assertEquals(true, h1 == h2);
         assertEquals(false, h1 == h3);
     }
+
 }
